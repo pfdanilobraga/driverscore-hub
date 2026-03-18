@@ -3,7 +3,6 @@ import type { Driver, DriverStatus, Trip, Block, StatusMetrics } from '@/data/mo
 
 export function parseDateBR(dateStr: string): Date | null {
   if (!dateStr || dateStr === '-') return null;
-  // Handle "dd/mm/yyyy HH:mm:ss" format
   const parts = dateStr.split(' ');
   const datePart = parts[0];
   const timePart = parts[1] || '00:00:00';
@@ -30,9 +29,19 @@ function resolveStatus(existing: string, scheduled: string, realized: string): s
   return calculateStatusFromDates(scheduled, realized) || '';
 }
 
-function normalizeStatus(status: string): number {
+// RF01 — New status conversion for ETA Origem
+function statusValueOrigem(status: string): number {
   const s = (status || '').trim().toUpperCase();
-  return (s === 'ON TIME' || s === 'EARLY') ? 1 : 0;
+  if (s === 'ON TIME') return 1;
+  if (s === 'EARLY') return 0.5;
+  return 0; // DELAY
+}
+
+// RF01 — New status conversion for ETA Destino
+function statusValueDestino(status: string): number {
+  const s = (status || '').trim().toUpperCase();
+  if (s === 'ON TIME') return 1;
+  return 0; // EARLY and DELAY = 0
 }
 
 function isOcorrenciaValida(value: string, ignoredList: string[]): number {
@@ -41,18 +50,12 @@ function isOcorrenciaValida(value: string, ignoredList: string[]): number {
   return 1;
 }
 
-export function calculateTripScore(trip: { status_eta: string; status_cpt: string; status_eta_destino: string; ocorrencia_eta: string; ocorrencia_cpt: string; ocorrencia_eta_destino: string }, ignoredOccurrences: string[] = []): number {
-  const eta = normalizeStatus(trip.status_eta);
-  const cpt = normalizeStatus(trip.status_cpt);
-  const dest = normalizeStatus(trip.status_eta_destino);
-
-  const ocorr =
-    isOcorrenciaValida(trip.ocorrencia_eta, ignoredOccurrences) +
-    isOcorrenciaValida(trip.ocorrencia_cpt, ignoredOccurrences) +
-    isOcorrenciaValida(trip.ocorrencia_eta_destino, ignoredOccurrences);
-
-  const score = (eta * 30) + (cpt * 30) + (dest * 40) - (ocorr * 10);
-  return Math.max(0, score);
+// RF01/RF02 — New score formula: (ETA_Origem * 0.5 + ETA_Destino * 0.5) * 100
+export function calculateTripScore(trip: { status_eta: string; status_eta_destino: string }): number {
+  const origem = statusValueOrigem(trip.status_eta);
+  const destino = statusValueDestino(trip.status_eta_destino);
+  const score = (origem * 0.5 + destino * 0.5) * 100;
+  return Math.round(score);
 }
 
 export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
@@ -87,8 +90,8 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
     const resolvedStatusDest = resolveStatus(st.status_eta_destino, st.eta_destination_edited, st.eta_destino_realizado);
     const resolvedStatusCpt = (st.status_cpt || '').trim();
 
-    const tripForScore = { ...st, status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest, status_cpt: resolvedStatusCpt };
-    const score_final = calculateTripScore(tripForScore, ignoredOccurrences);
+    // RF01/RF02 — New score formula (no CPT, no occurrence penalties in base score)
+    const score_final = calculateTripScore({ status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest });
 
     return {
       id: st.trip_number || `t${idx + 1}`,
@@ -120,6 +123,7 @@ function calcStatusMetrics(trips: Trip[], field: 'status_eta' | 'status_eta_dest
   };
 }
 
+// RF03 — Driver score = average of ALL trip scores (no skipping)
 export function deriveDrivers(trips: Trip[]): Driver[] {
   const driverMap = new Map<string, Trip[]>();
 
@@ -133,9 +137,7 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
 
   for (const [driverId, driverTrips] of driverMap) {
     const nome = driverTrips[0].driverName;
-    // Score só conta a partir da 5ª viagem
-    const tripsForScore = driverTrips.length >= 5 ? driverTrips.slice(4) : [];
-    const scores = tripsForScore.map(t => t.score_final);
+    const scores = driverTrips.map(t => t.score_final);
     const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const ocorrencias = driverTrips.filter(t => t.ocorrencia).length;
 
