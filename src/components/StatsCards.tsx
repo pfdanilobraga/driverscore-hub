@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useData } from '@/contexts/DataContext';
 
 export function StatsCards() {
-  const { drivers, trips, blocks, isLoading } = useData();
+  const { activeDrivers, drivers, trips, blocks, isLoading } = useData();
 
   if (isLoading) {
     return (
@@ -22,19 +22,18 @@ export function StatsCards() {
     );
   }
 
-  const today = new Date().toISOString().split('T')[0];
-
+  // RF05 — Score médio uses only active (non-blocked) drivers
   const stats = [
     {
       label: 'Motoristas Ativos',
-      value: drivers.filter(d => d.status === 'ATIVO').length,
+      value: activeDrivers.length,
       total: drivers.length,
       icon: Users,
       trend: 'up' as const,
     },
     {
       label: 'Score Médio',
-      value: drivers.length > 0 ? Math.round(drivers.reduce((a, d) => a + d.scoreMedia, 0) / drivers.length) : 0,
+      value: activeDrivers.length > 0 ? Math.round(activeDrivers.reduce((a, d) => a + d.scoreMedia, 0) / activeDrivers.length) : 0,
       suffix: '/100',
       icon: BarChart3,
       trend: 'up' as const,
