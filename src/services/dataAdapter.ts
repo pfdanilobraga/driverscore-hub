@@ -55,7 +55,11 @@ export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
 }
 
 export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: string[] = []): Trip[] {
-  const validTrips = sheetTrips.filter(st => st.driver_id && st.driver_id !== '0');
+  const validTrips = sheetTrips.filter(st => {
+    if (!st.driver_id || st.driver_id === '0') return false;
+    const statusAgrupado = (st.status_agrupado || '').trim().toUpperCase();
+    return statusAgrupado === 'FECHADA';
+  });
 
   return validTrips.map((st, idx) => {
     const ocEta = (st.ocorrencia_eta || '').trim();
