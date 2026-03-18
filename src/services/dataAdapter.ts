@@ -107,7 +107,7 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
   const driverMap = new Map<string, Trip[]>();
 
   for (const trip of trips) {
-    const key = trip.driverName;
+    const key = trip.driver_id; // Group by driver_id, not name
     if (!driverMap.has(key)) driverMap.set(key, []);
     driverMap.get(key)!.push(trip);
   }
@@ -115,7 +115,8 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
   const drivers: Driver[] = [];
   let idx = 0;
 
-  for (const [nome, driverTrips] of driverMap) {
+  for (const [driverId, driverTrips] of driverMap) {
+    const nome = driverTrips[0].driverName;
     const scores = driverTrips.map(t => t.score_final);
     const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     const variance = scores.length > 1
@@ -128,8 +129,8 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
     else if (avg < 75) status = 'MONITORADO';
 
     drivers.push({
-      id: `d${idx++}`,
-      nome,
+      id: driverId,
+      nome: `${nome} (${driverId})`,
       status,
       scoreMedia: avg,
       totalViagens: driverTrips.length,
