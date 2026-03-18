@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
 import { useTrips } from '@/hooks/useTrips';
-import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, calculateTripScore } from '@/services/dataAdapter';
+import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, calculateTripScore, parseDateBR } from '@/services/dataAdapter';
 import type { Trip, Driver, Block } from '@/data/mockData';
 import { mockTrips, mockDrivers, mockBlocks } from '@/data/mockData';
 
@@ -10,6 +10,11 @@ interface EvaluationData {
   desvio_rota: string;
   postura: string;
   ajuste_manual: number;
+}
+
+interface DateRange {
+  from: Date | null;
+  to: Date | null;
 }
 
 interface DataContextType {
@@ -22,6 +27,8 @@ interface DataContextType {
   ignoredOccurrences: string[];
   setIgnoredOccurrences: (v: string[]) => void;
   evaluateTrip: (tripId: string, evaluation: EvaluationData) => void;
+  dateRange: DateRange;
+  setDateRange: (v: DateRange) => void;
 }
 
 const DataContext = createContext<DataContextType>({
@@ -34,12 +41,15 @@ const DataContext = createContext<DataContextType>({
   ignoredOccurrences: [],
   setIgnoredOccurrences: () => {},
   evaluateTrip: () => {},
+  dateRange: { from: null, to: null },
+  setDateRange: () => {},
 });
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const { data: sheetTrips, isLoading, isError } = useTrips();
   const [ignoredOccurrences, setIgnoredOccurrences] = useState<string[]>([]);
   const [evaluations, setEvaluations] = useState<Record<string, { ajuste: number }>>({});
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
 
   const uniqueOccurrences = useMemo(() => {
     if (sheetTrips && sheetTrips.length > 0) {
@@ -51,6 +61,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { trips, drivers, blocks } = useMemo(() => {
     if (sheetTrips && sheetTrips.length > 0) {
       let t = transformTrips(sheetTrips, ignoredOccurrences);
+
+      // Apply date range filter
+      if (dateRange.from || dateRange.to) {
+        t = t.filter(trip => {
+          const tripDate = parseDateBR(trip.data);
+          if (!tripDate) return false;
+          if (dateRange.from && tripDate < dateRange.from) return false;
+          if (dateRange.to) {
+            const endOfDay = new Date(dateRange.to);
+            endOfDay.setHours(23, 59, 59, 999);
+            if (tripDate > endOfDay) return false;
+          }
+          return true;
+        });
+      }
+
       // Apply evaluations
       t = t.map(trip => {
         const ev = evaluations[trip.id];
@@ -68,7 +94,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return { trips: mockTrips, drivers: mockDrivers, blocks: mockBlocks };
     }
     return { trips: [] as Trip[], drivers: [] as Driver[], blocks: [] as Block[] };
-  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations]);
+  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations, dateRange]);
 
   const evaluateTrip = useCallback((tripId: string, evaluation: EvaluationData) => {
     let ajuste = evaluation.ajuste_manual;
@@ -87,7 +113,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <DataContext.Provider value={{ trips, drivers, blocks, isLoading, isError, uniqueOccurrences, ignoredOccurrences, setIgnoredOccurrences, evaluateTrip }}>
+    <DataContext.Provider value={{ trips, drivers, blocks, isLoading, isError, uniqueOccurrences, ignoredOccurrences, setIgnoredOccurrences, evaluateTrip, dateRange, setDateRange }}>
       {children}
     </DataContext.Provider>
   );

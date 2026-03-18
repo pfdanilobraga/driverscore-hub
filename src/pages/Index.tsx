@@ -8,6 +8,7 @@ import { BlocksList } from '@/components/BlocksList';
 import { QualityChart } from '@/components/QualityChart';
 import { EvaluationForm } from '@/components/EvaluationForm';
 import { OccurrenceFilter } from '@/components/OccurrenceFilter';
+import { DateRangeFilter } from '@/components/DateRangeFilter';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
@@ -37,7 +38,8 @@ const Index = () => {
       <main className="container px-4 py-6 space-y-6">
         <StatsCards />
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <DateRangeFilter />
           <OccurrenceFilter />
         </div>
 

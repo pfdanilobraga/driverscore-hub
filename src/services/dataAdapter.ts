@@ -1,6 +1,18 @@
 import { SheetTrip } from '@/services/sheetsService';
 import type { Driver, DriverStatus, Trip, Block, StatusMetrics } from '@/data/mockData';
 
+export function parseDateBR(dateStr: string): Date | null {
+  if (!dateStr || dateStr === '-') return null;
+  // Handle "dd/mm/yyyy HH:mm:ss" format
+  const parts = dateStr.split(' ');
+  const datePart = parts[0];
+  const timePart = parts[1] || '00:00:00';
+  const [day, month, year] = datePart.split('/');
+  if (!day || !month || !year) return null;
+  const d = new Date(`${year}-${month}-${day}T${timePart}`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function calculateStatusFromDates(scheduled: string, realized: string): string | null {
   if (!scheduled || !realized || scheduled === '-' || realized === '-') return null;
   const scheduledDate = new Date(scheduled);

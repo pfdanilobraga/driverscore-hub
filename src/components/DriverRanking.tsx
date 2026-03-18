@@ -41,9 +41,9 @@ export function DriverRanking() {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[500px] overflow-y-auto relative">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b bg-muted/50">
                 <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">#</th>
                 <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
