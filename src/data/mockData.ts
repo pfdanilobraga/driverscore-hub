@@ -4,15 +4,22 @@ export type DesvioRota = 'NENHUM' | 'LEVE' | 'GRAVE';
 export type Postura = 'OK' | 'RUIM';
 export type BlockType = 'NO_SHOW' | 'SCORE_BAIXO' | 'MANUAL' | 'OCORRENCIA_GRAVE';
 
+export interface StatusMetrics {
+  onTime: number;
+  early: number;
+  delay: number;
+}
+
 export interface Driver {
   id: string;
   nome: string;
   status: DriverStatus;
   scoreMedia: number;
   totalViagens: number;
-  variancia: number;
   ocorrencias: number;
   created_at: string;
+  etaOrigMetrics: StatusMetrics;
+  etaDestMetrics: StatusMetrics;
 }
 
 export interface Trip {
@@ -57,6 +64,8 @@ export interface Block {
   created_by: string;
 }
 
+const defaultMetrics: StatusMetrics = { onTime: 0, early: 0, delay: 0 };
+
 const driverNames = [
   'Carlos Silva', 'João Oliveira', 'Pedro Santos', 'Lucas Ferreira',
   'Marcos Souza', 'Rafael Costa', 'André Lima', 'Felipe Almeida',
@@ -73,9 +82,10 @@ export const mockDrivers: Driver[] = driverNames.map((nome, i) => {
     status,
     scoreMedia: score,
     totalViagens: Math.floor(15 + Math.random() * 50),
-    variancia: Math.round(Math.random() * 20),
     ocorrencias: Math.floor(Math.random() * 5),
     created_at: '2025-01-15',
+    etaOrigMetrics: defaultMetrics,
+    etaDestMetrics: defaultMetrics,
   };
 }).sort((a, b) => b.scoreMedia - a.scoreMedia);
 
