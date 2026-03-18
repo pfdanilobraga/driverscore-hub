@@ -20,12 +20,11 @@ export interface Trip {
   driver_id: string;
   driverName: string;
   data: string;
-  eta_origem: number;
-  eta_destino: number;
-  cpt: number;
-  uso_app: number;
-  checklist: boolean;
+  status_eta: string;
+  status_eta_destino: string;
+  status_cpt: string;
   ocorrencia: boolean;
+  ocorrencia_count: number;
   score_final: number;
   evaluated: boolean;
 }

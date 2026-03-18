@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,14 @@ import { useData } from '@/contexts/DataContext';
 
 interface TripListProps {
   onEvaluate: (tripId: string) => void;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = status.toUpperCase();
+  if (s === 'ON TIME') return <Badge variant="success" className="text-[10px]">ON TIME</Badge>;
+  if (s === 'EARLY') return <Badge className="text-[10px] bg-blue-500/15 text-blue-600 border-blue-500/20 hover:bg-blue-500/20">EARLY</Badge>;
+  if (s === 'DELAY') return <Badge variant="destructive" className="text-[10px]">DELAY</Badge>;
+  return <span className="text-xs text-muted-foreground">{status}</span>;
 }
 
 export function TripList({ onEvaluate }: TripListProps) {
@@ -34,6 +42,7 @@ export function TripList({ onEvaluate }: TripListProps) {
         <CardTitle className="flex items-center gap-2 text-base">
           <FileText className="h-4 w-4 text-accent" />
           Viagens Recentes
+          <span className="text-xs font-normal text-muted-foreground ml-auto">{trips.length} viagens</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -45,11 +54,8 @@ export function TripList({ onEvaluate }: TripListProps) {
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Driver ID</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Data</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">ETA Orig.</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">ETA Dest.</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">CPT</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">App %</th>
-                <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Check</th>
+                <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">ETA Orig.</th>
+                <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">ETA Dest.</th>
                 <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Ocorr.</th>
                 <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Score</th>
                 <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Ação</th>
@@ -61,29 +67,16 @@ export function TripList({ onEvaluate }: TripListProps) {
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground max-w-[120px] truncate">{trip.id}</td>
                   <td className="px-4 py-3 font-mono text-xs">{trip.driver_id}</td>
                   <td className="px-4 py-3 font-medium">{trip.driverName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{trip.data}</td>
-                  <td className={`px-4 py-3 text-right font-mono ${trip.eta_origem < 95 ? 'text-destructive' : ''}`}>
-                    {trip.eta_origem}%
-                  </td>
-                  <td className={`px-4 py-3 text-right font-mono ${trip.eta_destino < 90 ? 'text-destructive' : ''}`}>
-                    {trip.eta_destino}%
-                  </td>
-                  <td className={`px-4 py-3 text-right font-mono ${trip.cpt < 98 ? 'text-destructive' : ''}`}>
-                    {trip.cpt}%
-                  </td>
-                  <td className={`px-4 py-3 text-right font-mono ${trip.uso_app < 90 ? 'text-destructive' : ''}`}>
-                    {trip.uso_app}%
+                  <td className="px-4 py-3 text-muted-foreground text-xs">{trip.data}</td>
+                  <td className="px-4 py-3 text-center">
+                    <StatusBadge status={trip.status_eta} />
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {trip.checklist ? (
-                      <CheckCircle className="h-4 w-4 text-success mx-auto" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-destructive mx-auto" />
-                    )}
+                    <StatusBadge status={trip.status_eta_destino} />
                   </td>
                   <td className="px-4 py-3 text-center">
                     {trip.ocorrencia ? (
-                      <Badge variant="destructive" className="text-[10px]">SIM</Badge>
+                      <Badge variant="destructive" className="text-[10px]">{trip.ocorrencia_count}</Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
