@@ -8,6 +8,7 @@ import { BlocksList } from '@/components/BlocksList';
 import { QualityChart } from '@/components/QualityChart';
 import { EvaluationForm } from '@/components/EvaluationForm';
 import { OccurrenceFilter } from '@/components/OccurrenceFilter';
+import { DateRangeFilter } from '@/components/DateRangeFilter';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
