@@ -48,20 +48,14 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
   console.log(`[DataAdapter] ${sheetTrips.length} total rows, ${validTrips.length} valid (filtered ${sheetTrips.length - validTrips.length} cancelled with driver_id=0)`);
 
   return validTrips.map((st, idx) => {
-    const eta_origem = calcEtaPercent(st.eta_scheduled_origin_edited, st.eta_realizado, st.status_eta);
-    const eta_destino = calcEtaPercent(st.eta_destination_edited, st.eta_destino_realizado, st.status_eta_destino);
-    const cpt = calcCptPercent(st.cpt_scheduled_origin_edited, st.cpt_realizado, st.status_cpt);
+    const eta_origem = normalizeStatus(st.status_eta) * 100;
+    const eta_destino = normalizeStatus(st.status_eta_destino) * 100;
+    const cpt = normalizeStatus(st.status_cpt) * 100;
     const uso_app = Math.round((85 + Math.random() * 15) * 10) / 10;
     const checklist = st.checkin_origin_operator !== '' && st.checkin_origin_operator !== '-';
-    const ocorrencia = hasOccurrence(st.ocorrencia_eta) || hasOccurrence(st.ocorrencia_cpt) || hasOccurrence(st.ocorrencia_eta_destino);
+    const ocorrencia = normalizeOcorrencia(st.ocorrencia_eta) + normalizeOcorrencia(st.ocorrencia_cpt) + normalizeOcorrencia(st.ocorrencia_eta_destino) > 0;
 
-    let score = 100;
-    if (eta_origem < 95) score -= 5;
-    if (eta_destino < 90) score -= 15;
-    if (cpt < 98) score -= 5;
-    if (uso_app < 90) score -= 10;
-    if (!checklist) score -= 15;
-    if (ocorrencia) score -= 25;
+    const score_final = calculateTripScore(st);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
@@ -74,7 +68,7 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
       uso_app,
       checklist,
       ocorrencia,
-      score_final: Math.max(0, Math.min(100, score)),
+      score_final,
       evaluated: false,
     };
   });
