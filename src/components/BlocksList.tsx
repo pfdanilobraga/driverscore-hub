@@ -1,12 +1,26 @@
-import { ShieldAlert, ShieldOff } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldAlert, ShieldOff, Unlock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getBlockTypeLabel } from '@/data/mockData';
 import { useData } from '@/contexts/DataContext';
 
 export function BlocksList() {
-  const { blocks, isLoading } = useData();
+  const { blocks, drivers, isLoading, unblockDriver } = useData();
+  const [unblocking, setUnblocking] = useState<string | null>(null);
+
+  const blockedDrivers = drivers.filter(d => d.status === 'BLOQUEADO');
+
+  const handleUnblock = async (driverId: string, driverName: string) => {
+    setUnblocking(driverId);
+    try {
+      await unblockDriver(driverId, driverName, 'Ana Costa');
+    } finally {
+      setUnblocking(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -23,35 +37,53 @@ export function BlocksList() {
     );
   }
 
+  const allBlocks = [
+    ...blocks,
+    ...blockedDrivers
+      .filter(d => !blocks.some(b => b.driver_id === d.id))
+      .map((d, idx) => ({
+        id: `auto-${idx}`,
+        driver_id: d.id,
+        driverName: d.nome,
+        tipo: 'SCORE_BAIXO' as const,
+        motivo: `Score médio ${d.scoreMedia} (abaixo de 60)`,
+        ativo: true,
+        data_inicio: d.created_at,
+        data_fim: null,
+        created_by: 'Sistema',
+      })),
+  ];
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <ShieldAlert className="h-4 w-4 text-destructive" />
           Bloqueios
+          <span className="text-xs font-normal text-muted-foreground ml-auto">{allBlocks.filter(b => b.ativo).length} ativos</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {blocks.length === 0 ? (
+        {allBlocks.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">
             Nenhum bloqueio ativo
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto relative">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Tipo</th>
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Motivo</th>
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Início</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Fim</th>
                   <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Status</th>
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Criado por</th>
+                  <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Ação</th>
                 </tr>
               </thead>
               <tbody>
-                {blocks.map((block) => (
+                {allBlocks.map((block) => (
                   <tr key={block.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 font-medium">{block.driverName}</td>
                     <td className="px-4 py-3">
@@ -61,7 +93,6 @@ export function BlocksList() {
                     </td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{block.motivo}</td>
                     <td className="px-4 py-3 font-mono text-xs">{block.data_inicio}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{block.data_fim || '—'}</td>
                     <td className="px-4 py-3 text-center">
                       {block.ativo ? (
                         <Badge variant="destructive" className="text-[10px]">
@@ -74,6 +105,20 @@ export function BlocksList() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{block.created_by}</td>
+                    <td className="px-4 py-3 text-center">
+                      {block.ativo && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs h-7 gap-1"
+                          disabled={unblocking === block.driver_id}
+                          onClick={() => handleUnblock(block.driver_id, block.driverName)}
+                        >
+                          <Unlock className="h-3 w-3" />
+                          {unblocking === block.driver_id ? 'Desbloqueando...' : 'Desbloquear'}
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

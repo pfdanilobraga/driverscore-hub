@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { FileText, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,9 +46,9 @@ export function TripList({ onEvaluate }: TripListProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[500px] overflow-y-auto relative">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">ID Viagem</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Driver ID</th>
@@ -85,13 +85,13 @@ export function TripList({ onEvaluate }: TripListProps) {
                     {trip.score_final}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {!trip.evaluated ? (
-                      <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => onEvaluate(trip.id)}>
-                        Avaliar
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-success font-medium">Avaliada</span>
-                    )}
+                    <Button size="sm" variant={trip.evaluated ? "ghost" : "outline"} className="text-xs h-7 gap-1" onClick={() => onEvaluate(trip.id)}>
+                      {trip.evaluated ? (
+                        <><Pencil className="h-3 w-3" /> Editar</>
+                      ) : (
+                        'Avaliar'
+                      )}
+                    </Button>
                   </td>
                 </tr>
               ))}
