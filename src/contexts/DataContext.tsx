@@ -49,6 +49,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { data: sheetTrips, isLoading, isError } = useTrips();
   const [ignoredOccurrences, setIgnoredOccurrences] = useState<string[]>([]);
   const [evaluations, setEvaluations] = useState<Record<string, { ajuste: number }>>({});
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
 
   const uniqueOccurrences = useMemo(() => {
     if (sheetTrips && sheetTrips.length > 0) {
