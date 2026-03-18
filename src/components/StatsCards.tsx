@@ -1,37 +1,58 @@
 import { TrendingUp, TrendingDown, AlertTriangle, Users, Route, BarChart3 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockDrivers, mockTrips, mockBlocks } from '@/data/mockData';
-
-const stats = [
-  {
-    label: 'Motoristas Ativos',
-    value: mockDrivers.filter(d => d.status === 'ATIVO').length,
-    total: mockDrivers.length,
-    icon: Users,
-    trend: 'up' as const,
-  },
-  {
-    label: 'Score Médio',
-    value: Math.round(mockDrivers.reduce((a, d) => a + d.scoreMedia, 0) / mockDrivers.length),
-    suffix: '/100',
-    icon: BarChart3,
-    trend: 'up' as const,
-  },
-  {
-    label: 'Viagens Hoje',
-    value: mockTrips.filter(t => t.data === '2025-03-17').length,
-    icon: Route,
-    trend: 'neutral' as const,
-  },
-  {
-    label: 'Bloqueios Ativos',
-    value: mockBlocks.filter(b => b.ativo).length,
-    icon: AlertTriangle,
-    trend: 'down' as const,
-  },
-];
+import { Skeleton } from '@/components/ui/skeleton';
+import { useData } from '@/contexts/DataContext';
 
 export function StatsCards() {
+  const { drivers, trips, blocks, isLoading } = useData();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <Card key={i} className="border-border/50">
+            <CardContent className="p-5 space-y-3">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-3 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const stats = [
+    {
+      label: 'Motoristas Ativos',
+      value: drivers.filter(d => d.status === 'ATIVO').length,
+      total: drivers.length,
+      icon: Users,
+      trend: 'up' as const,
+    },
+    {
+      label: 'Score Médio',
+      value: drivers.length > 0 ? Math.round(drivers.reduce((a, d) => a + d.scoreMedia, 0) / drivers.length) : 0,
+      suffix: '/100',
+      icon: BarChart3,
+      trend: 'up' as const,
+    },
+    {
+      label: 'Total Viagens',
+      value: trips.length,
+      icon: Route,
+      trend: 'neutral' as const,
+    },
+    {
+      label: 'Bloqueios Ativos',
+      value: blocks.filter(b => b.ativo).length,
+      icon: AlertTriangle,
+      trend: 'down' as const,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (

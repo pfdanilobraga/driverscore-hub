@@ -2,13 +2,32 @@ import { CheckCircle, XCircle, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { mockTrips, getScoreColor } from '@/data/mockData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getScoreColor } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
 
 interface TripListProps {
   onEvaluate: (tripId: string) => void;
 }
 
 export function TripList({ onEvaluate }: TripListProps) {
+  const { trips, isLoading } = useData();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4 text-accent" /> Viagens Recentes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -36,9 +55,9 @@ export function TripList({ onEvaluate }: TripListProps) {
               </tr>
             </thead>
             <tbody>
-              {mockTrips.slice(0, 20).map((trip) => (
+              {trips.slice(0, 30).map((trip) => (
                 <tr key={trip.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{trip.id}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground max-w-[120px] truncate">{trip.id}</td>
                   <td className="px-4 py-3 font-medium">{trip.driverName}</td>
                   <td className="px-4 py-3 text-muted-foreground">{trip.data}</td>
                   <td className={`px-4 py-3 text-right font-mono ${trip.eta_origem < 95 ? 'text-destructive' : ''}`}>
