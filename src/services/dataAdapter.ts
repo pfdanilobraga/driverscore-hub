@@ -71,16 +71,21 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
       isOcorrenciaValida(ocCpt, ignoredOccurrences) +
       isOcorrenciaValida(ocDest, ignoredOccurrences);
 
-    const score_final = calculateTripScore(st, ignoredOccurrences);
+    const resolvedStatusEta = resolveStatus(st.status_eta, st.eta_scheduled_origin_edited, st.eta_realizado);
+    const resolvedStatusDest = resolveStatus(st.status_eta_destino, st.eta_destination_edited, st.eta_destino_realizado);
+    const resolvedStatusCpt = (st.status_cpt || '').trim();
+
+    const tripForScore = { ...st, status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest, status_cpt: resolvedStatusCpt };
+    const score_final = calculateTripScore(tripForScore, ignoredOccurrences);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
       driver_id: st.driver_id,
       driverName: st.driver_name && st.driver_name !== '-' ? st.driver_name : st.used_agency_name || 'Não atribuído',
       data: st.eta_scheduled_origin_edited || st.sta_origin_date || '',
-      status_eta: (st.status_eta || '').trim() || '—',
-      status_eta_destino: (st.status_eta_destino || '').trim() || '—',
-      status_cpt: (st.status_cpt || '').trim() || '—',
+      status_eta: resolvedStatusEta || '—',
+      status_eta_destino: resolvedStatusDest || '—',
+      status_cpt: resolvedStatusCpt || '—',
       ocorrencia: ocorrencia_count > 0,
       ocorrencia_count,
       ocorrencia_eta: ocEta,
