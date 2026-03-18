@@ -61,6 +61,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { trips, drivers, blocks } = useMemo(() => {
     if (sheetTrips && sheetTrips.length > 0) {
       let t = transformTrips(sheetTrips, ignoredOccurrences);
+
+      // Apply date range filter
+      if (dateRange.from || dateRange.to) {
+        t = t.filter(trip => {
+          const tripDate = parseDateBR(trip.data);
+          if (!tripDate) return false;
+          if (dateRange.from && tripDate < dateRange.from) return false;
+          if (dateRange.to) {
+            const endOfDay = new Date(dateRange.to);
+            endOfDay.setHours(23, 59, 59, 999);
+            if (tripDate > endOfDay) return false;
+          }
+          return true;
+        });
+      }
+
       // Apply evaluations
       t = t.map(trip => {
         const ev = evaluations[trip.id];
@@ -78,7 +94,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return { trips: mockTrips, drivers: mockDrivers, blocks: mockBlocks };
     }
     return { trips: [] as Trip[], drivers: [] as Driver[], blocks: [] as Block[] };
-  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations]);
+  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations, dateRange]);
 
   const evaluateTrip = useCallback((tripId: string, evaluation: EvaluationData) => {
     let ajuste = evaluation.ajuste_manual;
