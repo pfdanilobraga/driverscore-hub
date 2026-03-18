@@ -5,6 +5,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getScoreColor, getStatusVariant } from '@/data/mockData';
 import { useData } from '@/contexts/DataContext';
 
+function MetricCell({ value, type }: { value: number; type: 'onTime' | 'early' | 'delay' }) {
+  const color = type === 'onTime'
+    ? 'text-success'
+    : type === 'early'
+      ? 'text-blue-500'
+      : 'text-destructive';
+  return <span className={`font-mono text-xs ${color}`}>{value.toFixed(1)}%</span>;
+}
+
 export function DriverRanking() {
   const { drivers, isLoading } = useData();
 
@@ -36,35 +45,48 @@ export function DriverRanking() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">#</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Score</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Viagens</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Variância</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Ocorr.</th>
+                <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">#</th>
+                <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
+                <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-3 py-2.5 text-right font-medium text-muted-foreground">Score</th>
+                <th className="px-3 py-2.5 text-right font-medium text-muted-foreground">Viagens</th>
+                <th className="px-3 py-2.5 text-right font-medium text-muted-foreground">Ocorr.</th>
+                <th className="px-2 py-2.5 text-center font-medium text-muted-foreground border-l" colSpan={3}>
+                  <span className="text-[10px] uppercase tracking-wider">ETA Origem</span>
+                </th>
+                <th className="px-2 py-2.5 text-center font-medium text-muted-foreground border-l" colSpan={3}>
+                  <span className="text-[10px] uppercase tracking-wider">ETA Destino</span>
+                </th>
+              </tr>
+              <tr className="border-b bg-muted/30">
+                <th colSpan={6}></th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground border-l">On Time</th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground">Early</th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground">Delay</th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground border-l">On Time</th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground">Early</th>
+                <th className="px-2 py-1 text-center text-[10px] text-muted-foreground">Delay</th>
               </tr>
             </thead>
             <tbody>
               {drivers.map((driver, idx) => (
                 <tr key={driver.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <span className={`font-mono font-bold text-xs ${idx < 3 ? 'text-accent' : 'text-muted-foreground'}`}>
                       {String(idx + 1).padStart(2, '0')}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-medium">{driver.nome}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3 font-medium">{driver.nome}</td>
+                  <td className="px-3 py-3">
                     <Badge variant={getStatusVariant(driver.status)} className="text-[10px]">
                       {driver.status}
                     </Badge>
                   </td>
-                  <td className={`px-4 py-3 text-right font-mono font-bold ${getScoreColor(driver.scoreMedia)}`}>
+                  <td className={`px-3 py-3 text-right font-mono font-bold ${getScoreColor(driver.scoreMedia)}`}>
                     {driver.scoreMedia}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-muted-foreground">{driver.totalViagens}</td>
-                  <td className="px-4 py-3 text-right font-mono text-muted-foreground">{driver.variancia}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-3 text-right font-mono text-muted-foreground">{driver.totalViagens}</td>
+                  <td className="px-3 py-3 text-right">
                     {driver.ocorrencias > 0 ? (
                       <span className="inline-flex items-center gap-1 text-destructive font-mono font-medium">
                         <AlertCircle className="h-3 w-3" /> {driver.ocorrencias}
@@ -73,6 +95,14 @@ export function DriverRanking() {
                       <span className="text-muted-foreground font-mono">0</span>
                     )}
                   </td>
+                  {/* ETA Origem */}
+                  <td className="px-2 py-3 text-center border-l"><MetricCell value={driver.etaOrigMetrics.onTime} type="onTime" /></td>
+                  <td className="px-2 py-3 text-center"><MetricCell value={driver.etaOrigMetrics.early} type="early" /></td>
+                  <td className="px-2 py-3 text-center"><MetricCell value={driver.etaOrigMetrics.delay} type="delay" /></td>
+                  {/* ETA Destino */}
+                  <td className="px-2 py-3 text-center border-l"><MetricCell value={driver.etaDestMetrics.onTime} type="onTime" /></td>
+                  <td className="px-2 py-3 text-center"><MetricCell value={driver.etaDestMetrics.early} type="early" /></td>
+                  <td className="px-2 py-3 text-center"><MetricCell value={driver.etaDestMetrics.delay} type="delay" /></td>
                 </tr>
               ))}
             </tbody>

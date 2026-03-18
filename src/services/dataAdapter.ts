@@ -1,20 +1,9 @@
 import { SheetTrip } from '@/services/sheetsService';
-import type { Driver, DriverStatus, Trip, Block } from '@/data/mockData';
+import type { Driver, DriverStatus, Trip, Block, StatusMetrics } from '@/data/mockData';
 
-/** Score calculation based on PRD formula */
-
-/**
- * Calculate ETA compliance % based on scheduled vs realized time.
- * 100% = on time or early. Decreases proportionally with delay.
- * If no realized time, use status string as fallback.
- */
 function normalizeStatus(status: string): number {
   const s = (status || '').trim().toUpperCase();
   return (s === 'ON TIME' || s === 'EARLY') ? 1 : 0;
-}
-
-function normalizeOcorrencia(value: string): number {
-  return (!value || value.trim() === '' || value.trim() === '-') ? 0 : 1;
 }
 
 function isOcorrenciaValida(value: string, ignoredList: string[]): number {
@@ -23,7 +12,7 @@ function isOcorrenciaValida(value: string, ignoredList: string[]): number {
   return 1;
 }
 
-export function calculateTripScore(trip: SheetTrip | { status_eta: string; status_cpt: string; status_eta_destino: string; ocorrencia_eta: string; ocorrencia_cpt: string; ocorrencia_eta_destino: string }, ignoredOccurrences: string[] = []): number {
+export function calculateTripScore(trip: { status_eta: string; status_cpt: string; status_eta_destino: string; ocorrencia_eta: string; ocorrencia_cpt: string; ocorrencia_eta_destino: string }, ignoredOccurrences: string[] = []): number {
   const eta = normalizeStatus(trip.status_eta);
   const cpt = normalizeStatus(trip.status_cpt);
   const dest = normalizeStatus(trip.status_eta_destino);
@@ -37,7 +26,6 @@ export function calculateTripScore(trip: SheetTrip | { status_eta: string; statu
   return Math.max(0, score);
 }
 
-/** Extract unique occurrence texts from trips */
 export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
   const set = new Set<string>();
   for (const t of sheetTrips) {
@@ -83,25 +71,32 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
   });
 }
 
+function calcStatusMetrics(trips: Trip[], field: 'status_eta' | 'status_eta_destino'): StatusMetrics {
+  const total = trips.length;
+  if (total === 0) return { onTime: 0, early: 0, delay: 0 };
+  const count = (val: string) => trips.filter(t => t[field].toUpperCase() === val).length;
+  return {
+    onTime: Math.round((count('ON TIME') / total) * 1000) / 10,
+    early: Math.round((count('EARLY') / total) * 1000) / 10,
+    delay: Math.round((count('DELAY') / total) * 1000) / 10,
+  };
+}
+
 export function deriveDrivers(trips: Trip[]): Driver[] {
   const driverMap = new Map<string, Trip[]>();
 
   for (const trip of trips) {
-    const key = trip.driver_id; // Group by driver_id, not name
+    const key = trip.driver_id;
     if (!driverMap.has(key)) driverMap.set(key, []);
     driverMap.get(key)!.push(trip);
   }
 
   const drivers: Driver[] = [];
-  let idx = 0;
 
   for (const [driverId, driverTrips] of driverMap) {
     const nome = driverTrips[0].driverName;
     const scores = driverTrips.map(t => t.score_final);
     const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-    const variance = scores.length > 1
-      ? Math.round(Math.sqrt(scores.reduce((sum, s) => sum + (s - avg) ** 2, 0) / scores.length))
-      : 0;
     const ocorrencias = driverTrips.filter(t => t.ocorrencia).length;
 
     let status: DriverStatus = 'ATIVO';
@@ -114,9 +109,10 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
       status,
       scoreMedia: avg,
       totalViagens: driverTrips.length,
-      variancia: variance,
       ocorrencias,
       created_at: driverTrips[0]?.data || '',
+      etaOrigMetrics: calcStatusMetrics(driverTrips, 'status_eta'),
+      etaDestMetrics: calcStatusMetrics(driverTrips, 'status_eta_destino'),
     });
   }
 

@@ -16,7 +16,7 @@ interface EvaluationFormProps {
 }
 
 export function EvaluationForm({ tripId, onClose }: EvaluationFormProps) {
-  const { trips } = useData();
+  const { trips, evaluateTrip } = useData();
   const trip = trips.find(t => t.id === tripId);
   const { toast } = useToast();
 
@@ -30,6 +30,13 @@ export function EvaluationForm({ tripId, onClose }: EvaluationFormProps) {
   if (!trip) return null;
 
   const handleSubmit = () => {
+    evaluateTrip(tripId, {
+      comunicacao,
+      atendeu,
+      desvio_rota: desvio,
+      postura,
+      ajuste_manual: ajuste[0],
+    });
     toast({
       title: 'Avaliação salva',
       description: `Viagem ${tripId} avaliada com sucesso. Ajuste: ${ajuste[0] >= 0 ? '+' : ''}${ajuste[0]}`,
