@@ -20,12 +20,11 @@ export interface Trip {
   driver_id: string;
   driverName: string;
   data: string;
-  eta_origem: number;
-  eta_destino: number;
-  cpt: number;
-  uso_app: number;
-  checklist: boolean;
+  status_eta: string;
+  status_eta_destino: string;
+  status_cpt: string;
   ocorrencia: boolean;
+  ocorrencia_count: number;
   score_final: number;
   evaluated: boolean;
 }
@@ -80,33 +79,30 @@ export const mockDrivers: Driver[] = driverNames.map((nome, i) => {
 export const mockTrips: Trip[] = [];
 for (let i = 0; i < 40; i++) {
   const driver = mockDrivers[Math.floor(Math.random() * mockDrivers.length)];
-  const eta_o = 85 + Math.random() * 15;
-  const eta_d = 80 + Math.random() * 20;
-  const cpt = 90 + Math.random() * 10;
-  const uso = 80 + Math.random() * 20;
-  const checklist = Math.random() > 0.15;
-  const ocorrencia = Math.random() < 0.1;
 
-  let score = 100;
-  if (eta_o < 95) score -= 5;
-  if (eta_d < 90) score -= 15;
-  if (cpt < 98) score -= 5;
-  if (uso < 90) score -= 10;
-  if (!checklist) score -= 15;
-  if (ocorrencia) score -= 25;
+  const statuses = ['ON TIME', 'EARLY', 'DELAY'];
+  const sEta = statuses[Math.floor(Math.random() * 3)];
+  const sDest = statuses[Math.floor(Math.random() * 3)];
+  const sCpt = statuses[Math.floor(Math.random() * 3)];
+  const ocorrencia = Math.random() > 0.7;
+  const ocorrencia_count = ocorrencia ? Math.ceil(Math.random() * 3) : 0;
+
+  const etaVal = (sEta === 'ON TIME' || sEta === 'EARLY') ? 1 : 0;
+  const destVal = (sDest === 'ON TIME' || sDest === 'EARLY') ? 1 : 0;
+  const cptVal = (sCpt === 'ON TIME' || sCpt === 'EARLY') ? 1 : 0;
+  const score = Math.max(0, (etaVal * 30) + (cptVal * 30) + (destVal * 40) - (ocorrencia_count * 10));
 
   mockTrips.push({
     id: `t${i + 1}`,
     driver_id: driver.id,
     driverName: driver.nome,
-    data: `2025-03-${String(1 + (i % 17)).padStart(2, '0')}`,
-    eta_origem: Math.round(eta_o * 10) / 10,
-    eta_destino: Math.round(eta_d * 10) / 10,
-    cpt: Math.round(cpt * 10) / 10,
-    uso_app: Math.round(uso * 10) / 10,
-    checklist,
+    data: `2025-03-${String(1 + (i % 17)).padStart(2, '0')} 07:00`,
+    status_eta: sEta,
+    status_eta_destino: sDest,
+    status_cpt: sCpt,
     ocorrencia,
-    score_final: Math.max(0, Math.min(100, score)),
+    ocorrencia_count,
+    score_final: score,
     evaluated: Math.random() > 0.4,
   });
 }

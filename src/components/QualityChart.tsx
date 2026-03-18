@@ -17,13 +17,13 @@ export function QualityChart() {
 
   const total = trips.length || 1;
 
+  const statusNorm = (s: string) => (s.toUpperCase() === 'ON TIME' || s.toUpperCase() === 'EARLY') ? 1 : 0;
+
   const kpiData = [
-    { name: 'ETA Orig. <95%', value: Math.round((trips.filter(t => t.eta_origem < 95).length / total) * 100) },
-    { name: 'ETA Dest. <90%', value: Math.round((trips.filter(t => t.eta_destino < 90).length / total) * 100) },
-    { name: 'CPT <98%', value: Math.round((trips.filter(t => t.cpt < 98).length / total) * 100) },
-    { name: 'App <90%', value: Math.round((trips.filter(t => t.uso_app < 90).length / total) * 100) },
-    { name: 'Sem Checklist', value: Math.round((trips.filter(t => !t.checklist).length / total) * 100) },
-    { name: 'Ocorrências', value: Math.round((trips.filter(t => t.ocorrencia).length / total) * 100) },
+    { name: 'ETA Orig. DELAY', value: Math.round((trips.filter(t => statusNorm(t.status_eta) === 0).length / total) * 100) },
+    { name: 'ETA Dest. DELAY', value: Math.round((trips.filter(t => statusNorm(t.status_eta_destino) === 0).length / total) * 100) },
+    { name: 'Com Ocorrência', value: Math.round((trips.filter(t => t.ocorrencia).length / total) * 100) },
+    { name: 'Score < 60', value: Math.round((trips.filter(t => t.score_final < 60).length / total) * 100) },
   ];
 
   const getBarColor = (value: number) => {

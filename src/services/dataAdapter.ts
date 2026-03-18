@@ -38,26 +38,19 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
   console.log(`[DataAdapter] ${sheetTrips.length} total rows, ${validTrips.length} valid (filtered ${sheetTrips.length - validTrips.length} cancelled with driver_id=0)`);
 
   return validTrips.map((st, idx) => {
-    const eta_origem = normalizeStatus(st.status_eta) * 100;
-    const eta_destino = normalizeStatus(st.status_eta_destino) * 100;
-    const cpt = normalizeStatus(st.status_cpt) * 100;
-    const uso_app = Math.round((85 + Math.random() * 15) * 10) / 10;
-    const checklist = st.checkin_origin_operator !== '' && st.checkin_origin_operator !== '-';
-    const ocorrencia = normalizeOcorrencia(st.ocorrencia_eta) + normalizeOcorrencia(st.ocorrencia_cpt) + normalizeOcorrencia(st.ocorrencia_eta_destino) > 0;
-
+    const ocorrencia_count = normalizeOcorrencia(st.ocorrencia_eta) + normalizeOcorrencia(st.ocorrencia_cpt) + normalizeOcorrencia(st.ocorrencia_eta_destino);
     const score_final = calculateTripScore(st);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
       driver_id: st.driver_id,
       driverName: st.driver_name && st.driver_name !== '-' ? st.driver_name : st.used_agency_name || 'Não atribuído',
-      data: st.sta_origin_date || '',
-      eta_origem,
-      eta_destino,
-      cpt,
-      uso_app,
-      checklist,
-      ocorrencia,
+      data: st.eta_scheduled_origin_edited || st.sta_origin_date || '',
+      status_eta: (st.status_eta || '').trim() || '—',
+      status_eta_destino: (st.status_eta_destino || '').trim() || '—',
+      status_cpt: (st.status_cpt || '').trim() || '—',
+      ocorrencia: ocorrencia_count > 0,
+      ocorrencia_count,
       score_final,
       evaluated: false,
     };
