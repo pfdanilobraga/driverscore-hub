@@ -79,20 +79,6 @@ export const mockDrivers: Driver[] = driverNames.map((nome, i) => {
 export const mockTrips: Trip[] = [];
 for (let i = 0; i < 40; i++) {
   const driver = mockDrivers[Math.floor(Math.random() * mockDrivers.length)];
-  const eta_o = 85 + Math.random() * 15;
-  const eta_d = 80 + Math.random() * 20;
-  const cpt = 90 + Math.random() * 10;
-  const uso = 80 + Math.random() * 20;
-  const checklist = Math.random() > 0.15;
-  const ocorrencia = Math.random() < 0.1;
-
-  let score = 100;
-  if (eta_o < 95) score -= 5;
-  if (eta_d < 90) score -= 15;
-  if (cpt < 98) score -= 5;
-  if (uso < 90) score -= 10;
-  if (!checklist) score -= 15;
-  if (ocorrencia) score -= 25;
 
   const statuses = ['ON TIME', 'EARLY', 'DELAY'];
   const sEta = statuses[Math.floor(Math.random() * 3)];
