@@ -1,9 +1,28 @@
 import { Trophy, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockDrivers, getScoreColor, getStatusVariant } from '@/data/mockData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getScoreColor, getStatusVariant } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
 
 export function DriverRanking() {
+  const { drivers, isLoading } = useData();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Trophy className="h-4 w-4 text-accent" /> Ranking de Motoristas
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -27,7 +46,7 @@ export function DriverRanking() {
               </tr>
             </thead>
             <tbody>
-              {mockDrivers.map((driver, idx) => (
+              {drivers.map((driver, idx) => (
                 <tr key={driver.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3">
                     <span className={`font-mono font-bold text-xs ${idx < 3 ? 'text-accent' : 'text-muted-foreground'}`}>

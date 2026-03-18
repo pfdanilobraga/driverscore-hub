@@ -1,33 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockTrips, mockDrivers } from '@/data/mockData';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useData } from '@/contexts/DataContext';
 
 export function QualityChart() {
+  const { trips, drivers, isLoading } = useData();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card><CardContent className="p-5"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
+        <Card><CardContent className="p-5"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
+      </div>
+    );
+  }
+
+  const total = trips.length || 1;
+
   const kpiData = [
-    {
-      name: 'ETA Orig. <95%',
-      value: Math.round((mockTrips.filter(t => t.eta_origem < 95).length / mockTrips.length) * 100),
-    },
-    {
-      name: 'ETA Dest. <90%',
-      value: Math.round((mockTrips.filter(t => t.eta_destino < 90).length / mockTrips.length) * 100),
-    },
-    {
-      name: 'CPT <98%',
-      value: Math.round((mockTrips.filter(t => t.cpt < 98).length / mockTrips.length) * 100),
-    },
-    {
-      name: 'App <90%',
-      value: Math.round((mockTrips.filter(t => t.uso_app < 90).length / mockTrips.length) * 100),
-    },
-    {
-      name: 'Sem Checklist',
-      value: Math.round((mockTrips.filter(t => !t.checklist).length / mockTrips.length) * 100),
-    },
-    {
-      name: 'Ocorrências',
-      value: Math.round((mockTrips.filter(t => t.ocorrencia).length / mockTrips.length) * 100),
-    },
+    { name: 'ETA Orig. <95%', value: Math.round((trips.filter(t => t.eta_origem < 95).length / total) * 100) },
+    { name: 'ETA Dest. <90%', value: Math.round((trips.filter(t => t.eta_destino < 90).length / total) * 100) },
+    { name: 'CPT <98%', value: Math.round((trips.filter(t => t.cpt < 98).length / total) * 100) },
+    { name: 'App <90%', value: Math.round((trips.filter(t => t.uso_app < 90).length / total) * 100) },
+    { name: 'Sem Checklist', value: Math.round((trips.filter(t => !t.checklist).length / total) * 100) },
+    { name: 'Ocorrências', value: Math.round((trips.filter(t => t.ocorrencia).length / total) * 100) },
   ];
 
   const getBarColor = (value: number) => {
@@ -37,11 +33,11 @@ export function QualityChart() {
   };
 
   const scoreDistribution = [
-    { range: '0-40', count: mockDrivers.filter(d => d.scoreMedia <= 40).length },
-    { range: '41-60', count: mockDrivers.filter(d => d.scoreMedia > 40 && d.scoreMedia <= 60).length },
-    { range: '61-75', count: mockDrivers.filter(d => d.scoreMedia > 60 && d.scoreMedia <= 75).length },
-    { range: '76-90', count: mockDrivers.filter(d => d.scoreMedia > 75 && d.scoreMedia <= 90).length },
-    { range: '91-100', count: mockDrivers.filter(d => d.scoreMedia > 90).length },
+    { range: '0-40', count: drivers.filter(d => d.scoreMedia <= 40).length },
+    { range: '41-60', count: drivers.filter(d => d.scoreMedia > 40 && d.scoreMedia <= 60).length },
+    { range: '61-75', count: drivers.filter(d => d.scoreMedia > 60 && d.scoreMedia <= 75).length },
+    { range: '76-90', count: drivers.filter(d => d.scoreMedia > 75 && d.scoreMedia <= 90).length },
+    { range: '91-100', count: drivers.filter(d => d.scoreMedia > 90).length },
   ];
 
   return (

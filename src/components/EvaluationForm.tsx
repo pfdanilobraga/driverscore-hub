@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { mockTrips } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface EvaluationFormProps {
@@ -16,7 +16,8 @@ interface EvaluationFormProps {
 }
 
 export function EvaluationForm({ tripId, onClose }: EvaluationFormProps) {
-  const trip = mockTrips.find(t => t.id === tripId);
+  const { trips } = useData();
+  const trip = trips.find(t => t.id === tripId);
   const { toast } = useToast();
 
   const [comunicacao, setComunicacao] = useState('BOA');
@@ -41,7 +42,7 @@ export function EvaluationForm({ tripId, onClose }: EvaluationFormProps) {
       <Card className="w-full max-w-lg">
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base">Avaliar Viagem {tripId}</CardTitle>
+            <CardTitle className="text-base">Avaliar Viagem</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               {trip.driverName} — {trip.data}
             </p>
