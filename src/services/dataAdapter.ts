@@ -49,15 +49,20 @@ export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
   return Array.from(set).sort();
 }
 
-export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
-  // Filter out cancelled trips (driver_id === "0")
+export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: string[] = []): Trip[] {
   const validTrips = sheetTrips.filter(st => st.driver_id && st.driver_id !== '0');
 
-  console.log(`[DataAdapter] ${sheetTrips.length} total rows, ${validTrips.length} valid (filtered ${sheetTrips.length - validTrips.length} cancelled with driver_id=0)`);
-
   return validTrips.map((st, idx) => {
-    const ocorrencia_count = normalizeOcorrencia(st.ocorrencia_eta) + normalizeOcorrencia(st.ocorrencia_cpt) + normalizeOcorrencia(st.ocorrencia_eta_destino);
-    const score_final = calculateTripScore(st);
+    const ocEta = (st.ocorrencia_eta || '').trim();
+    const ocCpt = (st.ocorrencia_cpt || '').trim();
+    const ocDest = (st.ocorrencia_eta_destino || '').trim();
+
+    const ocorrencia_count =
+      isOcorrenciaValida(ocEta, ignoredOccurrences) +
+      isOcorrenciaValida(ocCpt, ignoredOccurrences) +
+      isOcorrenciaValida(ocDest, ignoredOccurrences);
+
+    const score_final = calculateTripScore(st, ignoredOccurrences);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
@@ -69,6 +74,9 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
       status_cpt: (st.status_cpt || '').trim() || '—',
       ocorrencia: ocorrencia_count > 0,
       ocorrencia_count,
+      ocorrencia_eta: ocEta,
+      ocorrencia_cpt: ocCpt,
+      ocorrencia_eta_destino: ocDest,
       score_final,
       evaluated: false,
     };

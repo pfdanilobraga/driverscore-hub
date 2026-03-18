@@ -25,6 +25,9 @@ export interface Trip {
   status_cpt: string;
   ocorrencia: boolean;
   ocorrencia_count: number;
+  ocorrencia_eta: string;
+  ocorrencia_cpt: string;
+  ocorrencia_eta_destino: string;
   score_final: number;
   evaluated: boolean;
 }
