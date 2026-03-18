@@ -44,7 +44,7 @@ export function OccurrenceFilter() {
             </Button>
           )}
         </div>
-        <ScrollArea className="max-h-64">
+        <div className="max-h-64 overflow-y-auto">
           <div className="p-2 space-y-1">
             {uniqueOccurrences.map(occ => (
               <label
@@ -60,7 +60,7 @@ export function OccurrenceFilter() {
               </label>
             ))}
           </div>
-        </ScrollArea>
+        </div>
         {count > 0 && (
           <div className="px-4 py-2 border-t bg-muted/30 text-[11px] text-muted-foreground">
             Score e ranking recalculados sem as ocorrências selecionadas
