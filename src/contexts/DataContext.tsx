@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
 import { useTrips } from '@/hooks/useTrips';
-import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, calculateTripScore } from '@/services/dataAdapter';
+import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, calculateTripScore, parseDateBR } from '@/services/dataAdapter';
 import type { Trip, Driver, Block } from '@/data/mockData';
 import { mockTrips, mockDrivers, mockBlocks } from '@/data/mockData';
 
