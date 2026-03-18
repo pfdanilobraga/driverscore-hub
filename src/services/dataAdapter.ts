@@ -1,6 +1,23 @@
 import { SheetTrip } from '@/services/sheetsService';
 import type { Driver, DriverStatus, Trip, Block, StatusMetrics } from '@/data/mockData';
 
+function calculateStatusFromDates(scheduled: string, realized: string): string | null {
+  if (!scheduled || !realized || scheduled === '-' || realized === '-') return null;
+  const scheduledDate = new Date(scheduled);
+  const realizedDate = new Date(realized);
+  if (isNaN(scheduledDate.getTime()) || isNaN(realizedDate.getTime())) return null;
+  const diff = realizedDate.getTime() - scheduledDate.getTime();
+  if (diff < 0) return 'EARLY';
+  if (diff === 0) return 'ON TIME';
+  return 'DELAY';
+}
+
+function resolveStatus(existing: string, scheduled: string, realized: string): string {
+  const trimmed = (existing || '').trim();
+  if (trimmed && trimmed !== '—') return trimmed;
+  return calculateStatusFromDates(scheduled, realized) || '';
+}
+
 function normalizeStatus(status: string): number {
   const s = (status || '').trim().toUpperCase();
   return (s === 'ON TIME' || s === 'EARLY') ? 1 : 0;
