@@ -25,6 +25,9 @@ export interface Trip {
   status_cpt: string;
   ocorrencia: boolean;
   ocorrencia_count: number;
+  ocorrencia_eta: string;
+  ocorrencia_cpt: string;
+  ocorrencia_eta_destino: string;
   score_final: number;
   evaluated: boolean;
 }
@@ -92,6 +95,11 @@ for (let i = 0; i < 40; i++) {
   const cptVal = (sCpt === 'ON TIME' || sCpt === 'EARLY') ? 1 : 0;
   const score = Math.max(0, (etaVal * 30) + (cptVal * 30) + (destVal * 40) - (ocorrencia_count * 10));
 
+  const ocTexts = ['Morosidade no carregamento', 'Chuva', 'Problema mecânico', 'Trânsito'];
+  const ocEta = ocorrencia && Math.random() > 0.5 ? ocTexts[Math.floor(Math.random() * ocTexts.length)] : '-';
+  const ocCpt = ocorrencia && Math.random() > 0.5 ? ocTexts[Math.floor(Math.random() * ocTexts.length)] : '-';
+  const ocDest = ocorrencia && Math.random() > 0.5 ? ocTexts[Math.floor(Math.random() * ocTexts.length)] : '-';
+
   mockTrips.push({
     id: `t${i + 1}`,
     driver_id: driver.id,
@@ -102,6 +110,9 @@ for (let i = 0; i < 40; i++) {
     status_cpt: sCpt,
     ocorrencia,
     ocorrencia_count,
+    ocorrencia_eta: ocEta,
+    ocorrencia_cpt: ocCpt,
+    ocorrencia_eta_destino: ocDest,
     score_final: score,
     evaluated: Math.random() > 0.4,
   });

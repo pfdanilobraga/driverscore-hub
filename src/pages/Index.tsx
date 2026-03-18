@@ -7,6 +7,7 @@ import { TripList } from '@/components/TripList';
 import { BlocksList } from '@/components/BlocksList';
 import { QualityChart } from '@/components/QualityChart';
 import { EvaluationForm } from '@/components/EvaluationForm';
+import { OccurrenceFilter } from '@/components/OccurrenceFilter';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
@@ -35,6 +36,10 @@ const Index = () => {
       {/* Main */}
       <main className="container px-4 py-6 space-y-6">
         <StatsCards />
+
+        <div className="flex items-center justify-between">
+          <OccurrenceFilter />
+        </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">
           <TabsList className="bg-card border">

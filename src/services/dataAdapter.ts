@@ -17,29 +17,52 @@ function normalizeOcorrencia(value: string): number {
   return (!value || value.trim() === '' || value.trim() === '-') ? 0 : 1;
 }
 
-function calculateTripScore(trip: SheetTrip): number {
+function isOcorrenciaValida(value: string, ignoredList: string[]): number {
+  if (!value || value.trim() === '' || value.trim() === '-') return 0;
+  if (ignoredList.includes(value.trim())) return 0;
+  return 1;
+}
+
+export function calculateTripScore(trip: SheetTrip | { status_eta: string; status_cpt: string; status_eta_destino: string; ocorrencia_eta: string; ocorrencia_cpt: string; ocorrencia_eta_destino: string }, ignoredOccurrences: string[] = []): number {
   const eta = normalizeStatus(trip.status_eta);
   const cpt = normalizeStatus(trip.status_cpt);
   const dest = normalizeStatus(trip.status_eta_destino);
 
   const ocorr =
-    normalizeOcorrencia(trip.ocorrencia_eta) +
-    normalizeOcorrencia(trip.ocorrencia_cpt) +
-    normalizeOcorrencia(trip.ocorrencia_eta_destino);
+    isOcorrenciaValida(trip.ocorrencia_eta, ignoredOccurrences) +
+    isOcorrenciaValida(trip.ocorrencia_cpt, ignoredOccurrences) +
+    isOcorrenciaValida(trip.ocorrencia_eta_destino, ignoredOccurrences);
 
   const score = (eta * 30) + (cpt * 30) + (dest * 40) - (ocorr * 10);
   return Math.max(0, score);
 }
 
-export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
-  // Filter out cancelled trips (driver_id === "0")
+/** Extract unique occurrence texts from trips */
+export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
+  const set = new Set<string>();
+  for (const t of sheetTrips) {
+    for (const field of [t.ocorrencia_eta, t.ocorrencia_cpt, t.ocorrencia_eta_destino]) {
+      const v = (field || '').trim();
+      if (v && v !== '-') set.add(v);
+    }
+  }
+  return Array.from(set).sort();
+}
+
+export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: string[] = []): Trip[] {
   const validTrips = sheetTrips.filter(st => st.driver_id && st.driver_id !== '0');
 
-  console.log(`[DataAdapter] ${sheetTrips.length} total rows, ${validTrips.length} valid (filtered ${sheetTrips.length - validTrips.length} cancelled with driver_id=0)`);
-
   return validTrips.map((st, idx) => {
-    const ocorrencia_count = normalizeOcorrencia(st.ocorrencia_eta) + normalizeOcorrencia(st.ocorrencia_cpt) + normalizeOcorrencia(st.ocorrencia_eta_destino);
-    const score_final = calculateTripScore(st);
+    const ocEta = (st.ocorrencia_eta || '').trim();
+    const ocCpt = (st.ocorrencia_cpt || '').trim();
+    const ocDest = (st.ocorrencia_eta_destino || '').trim();
+
+    const ocorrencia_count =
+      isOcorrenciaValida(ocEta, ignoredOccurrences) +
+      isOcorrenciaValida(ocCpt, ignoredOccurrences) +
+      isOcorrenciaValida(ocDest, ignoredOccurrences);
+
+    const score_final = calculateTripScore(st, ignoredOccurrences);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
@@ -51,6 +74,9 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
       status_cpt: (st.status_cpt || '').trim() || '—',
       ocorrencia: ocorrencia_count > 0,
       ocorrencia_count,
+      ocorrencia_eta: ocEta,
+      ocorrencia_cpt: ocCpt,
+      ocorrencia_eta_destino: ocDest,
       score_final,
       evaluated: false,
     };
