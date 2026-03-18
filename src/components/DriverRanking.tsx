@@ -15,7 +15,7 @@ function MetricCell({ value, type }: { value: number; type: 'onTime' | 'early' |
 }
 
 export function DriverRanking() {
-  const { activeDrivers, isLoading } = useData();
+  const { drivers, isLoading } = useData();
 
   if (isLoading) {
     return (
@@ -38,7 +38,6 @@ export function DriverRanking() {
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="h-4 w-4 text-accent" />
           Ranking de Motoristas
-          <span className="text-xs font-normal text-muted-foreground ml-auto">{activeDrivers.length} motoristas</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -70,7 +69,7 @@ export function DriverRanking() {
               </tr>
             </thead>
             <tbody>
-              {activeDrivers.map((driver, idx) => (
+              {drivers.map((driver, idx) => (
                 <tr key={driver.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="px-3 py-3">
                     <span className={`font-mono font-bold text-xs ${idx < 3 ? 'text-accent' : 'text-muted-foreground'}`}>
@@ -96,9 +95,11 @@ export function DriverRanking() {
                       <span className="text-muted-foreground font-mono">0</span>
                     )}
                   </td>
+                  {/* ETA Origem */}
                   <td className="px-2 py-3 text-center border-l"><MetricCell value={driver.etaOrigMetrics.onTime} type="onTime" /></td>
                   <td className="px-2 py-3 text-center"><MetricCell value={driver.etaOrigMetrics.early} type="early" /></td>
                   <td className="px-2 py-3 text-center"><MetricCell value={driver.etaOrigMetrics.delay} type="delay" /></td>
+                  {/* ETA Destino */}
                   <td className="px-2 py-3 text-center border-l"><MetricCell value={driver.etaDestMetrics.onTime} type="onTime" /></td>
                   <td className="px-2 py-3 text-center"><MetricCell value={driver.etaDestMetrics.early} type="early" /></td>
                   <td className="px-2 py-3 text-center"><MetricCell value={driver.etaDestMetrics.delay} type="delay" /></td>
