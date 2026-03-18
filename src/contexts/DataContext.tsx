@@ -41,6 +41,8 @@ const DataContext = createContext<DataContextType>({
   ignoredOccurrences: [],
   setIgnoredOccurrences: () => {},
   evaluateTrip: () => {},
+  dateRange: { from: null, to: null },
+  setDateRange: () => {},
 });
 
 export function DataProvider({ children }: { children: ReactNode }) {
