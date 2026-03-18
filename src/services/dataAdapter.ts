@@ -1,6 +1,23 @@
 import { SheetTrip } from '@/services/sheetsService';
 import type { Driver, DriverStatus, Trip, Block, StatusMetrics } from '@/data/mockData';
 
+function calculateStatusFromDates(scheduled: string, realized: string): string | null {
+  if (!scheduled || !realized || scheduled === '-' || realized === '-') return null;
+  const scheduledDate = new Date(scheduled);
+  const realizedDate = new Date(realized);
+  if (isNaN(scheduledDate.getTime()) || isNaN(realizedDate.getTime())) return null;
+  const diff = realizedDate.getTime() - scheduledDate.getTime();
+  if (diff < 0) return 'EARLY';
+  if (diff === 0) return 'ON TIME';
+  return 'DELAY';
+}
+
+function resolveStatus(existing: string, scheduled: string, realized: string): string {
+  const trimmed = (existing || '').trim();
+  if (trimmed && trimmed !== '—') return trimmed;
+  return calculateStatusFromDates(scheduled, realized) || '';
+}
+
 function normalizeStatus(status: string): number {
   const s = (status || '').trim().toUpperCase();
   return (s === 'ON TIME' || s === 'EARLY') ? 1 : 0;
@@ -38,7 +55,11 @@ export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
 }
 
 export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: string[] = []): Trip[] {
-  const validTrips = sheetTrips.filter(st => st.driver_id && st.driver_id !== '0');
+  const validTrips = sheetTrips.filter(st => {
+    if (!st.driver_id || st.driver_id === '0') return false;
+    const statusAgrupado = (st.status_agrupado || '').trim().toUpperCase();
+    return statusAgrupado === 'FECHADA';
+  });
 
   return validTrips.map((st, idx) => {
     const ocEta = (st.ocorrencia_eta || '').trim();
@@ -50,16 +71,21 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
       isOcorrenciaValida(ocCpt, ignoredOccurrences) +
       isOcorrenciaValida(ocDest, ignoredOccurrences);
 
-    const score_final = calculateTripScore(st, ignoredOccurrences);
+    const resolvedStatusEta = resolveStatus(st.status_eta, st.eta_scheduled_origin_edited, st.eta_realizado);
+    const resolvedStatusDest = resolveStatus(st.status_eta_destino, st.eta_destination_edited, st.eta_destino_realizado);
+    const resolvedStatusCpt = (st.status_cpt || '').trim();
+
+    const tripForScore = { ...st, status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest, status_cpt: resolvedStatusCpt };
+    const score_final = calculateTripScore(tripForScore, ignoredOccurrences);
 
     return {
       id: st.trip_number || `t${idx + 1}`,
       driver_id: st.driver_id,
       driverName: st.driver_name && st.driver_name !== '-' ? st.driver_name : st.used_agency_name || 'Não atribuído',
       data: st.eta_scheduled_origin_edited || st.sta_origin_date || '',
-      status_eta: (st.status_eta || '').trim() || '—',
-      status_eta_destino: (st.status_eta_destino || '').trim() || '—',
-      status_cpt: (st.status_cpt || '').trim() || '—',
+      status_eta: resolvedStatusEta || '—',
+      status_eta_destino: resolvedStatusDest || '—',
+      status_cpt: resolvedStatusCpt || '—',
       ocorrencia: ocorrencia_count > 0,
       ocorrencia_count,
       ocorrencia_eta: ocEta,
