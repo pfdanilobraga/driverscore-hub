@@ -12,6 +12,11 @@ interface EvaluationData {
   ajuste_manual: number;
 }
 
+interface DateRange {
+  from: Date | null;
+  to: Date | null;
+}
+
 interface DataContextType {
   trips: Trip[];
   drivers: Driver[];
@@ -22,6 +27,8 @@ interface DataContextType {
   ignoredOccurrences: string[];
   setIgnoredOccurrences: (v: string[]) => void;
   evaluateTrip: (tripId: string, evaluation: EvaluationData) => void;
+  dateRange: DateRange;
+  setDateRange: (v: DateRange) => void;
 }
 
 const DataContext = createContext<DataContextType>({
