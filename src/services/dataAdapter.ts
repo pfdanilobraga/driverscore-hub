@@ -2,27 +2,61 @@ import { SheetTrip } from '@/services/sheetsService';
 import type { Driver, DriverStatus, Trip, Block } from '@/data/mockData';
 
 /**
- * Derive a numeric ETA compliance % from status fields.
- * If realized time exists, compute % based on schedule vs realized.
- * Fallback: use status_eta field.
+ * Parse a datetime string like "22/3/2026 15:31:00" into a Date object.
  */
-function deriveEtaPercent(status: string): number {
+function parseDateTime(value: string): Date | null {
+  if (!value || value === '-' || value === '') return null;
+  // Format: DD/MM/YYYY HH:MM:SS
+  const match = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
+  if (!match) return null;
+  const [, day, month, year, hour, min, sec] = match;
+  return new Date(+year, +month - 1, +day, +hour, +min, +sec);
+}
+
+/**
+ * Calculate ETA compliance % based on scheduled vs realized time.
+ * 100% = on time or early. Decreases proportionally with delay.
+ * If no realized time, use status string as fallback.
+ */
+function calcEtaPercent(scheduled: string, realized: string, status: string): number {
+  const schedDate = parseDateTime(scheduled);
+  const realDate = parseDateTime(realized);
+
+  if (schedDate && realDate) {
+    const diffMinutes = (realDate.getTime() - schedDate.getTime()) / 60000;
+    if (diffMinutes <= 0) return 100; // on time or early
+    // Each 10 min late = -5%, floor at 0
+    const penalty = Math.min(100, (diffMinutes / 10) * 5);
+    return Math.round((100 - penalty) * 10) / 10;
+  }
+
+  // Fallback: derive from status
   switch (status) {
-    case 'ON TIME': return 95 + Math.random() * 5;
-    case 'LATE': return 75 + Math.random() * 15;
-    case 'VERY LATE': return 50 + Math.random() * 25;
-    case 'OPENED': return 90 + Math.random() * 10;
-    default: return 90 + Math.random() * 10;
+    case 'ON TIME': return 100;
+    case 'LATE': return 85;
+    case 'VERY LATE': return 60;
+    case 'OPENED': return 100; // not yet due
+    default: return 100;
   }
 }
 
-function deriveCptPercent(status: string): number {
+function calcCptPercent(scheduled: string, realized: string, status: string): number {
+  const schedDate = parseDateTime(scheduled);
+  const realDate = parseDateTime(realized);
+
+  if (schedDate && realDate) {
+    const diffMinutes = (realDate.getTime() - schedDate.getTime()) / 60000;
+    if (diffMinutes <= 0) return 100;
+    const penalty = Math.min(100, (diffMinutes / 10) * 3);
+    return Math.round((100 - penalty) * 10) / 10;
+  }
+
   switch (status) {
-    case 'ON TIME': return 98 + Math.random() * 2;
-    case 'LATE': return 90 + Math.random() * 8;
-    case 'VERY LATE': return 80 + Math.random() * 10;
-    case 'OPENED': return 95 + Math.random() * 5;
-    default: return 95 + Math.random() * 5;
+    case 'ON TIME': return 100;
+    case 'LATE': return 92;
+    case 'VERY LATE': return 82;
+    case 'OPENED': return 100;
+    default: return 100;
   }
 }
 
@@ -31,10 +65,15 @@ function hasOccurrence(value: string): boolean {
 }
 
 export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
-  return sheetTrips.map((st, idx) => {
-    const eta_origem = Math.round(deriveEtaPercent(st.status_eta) * 10) / 10;
-    const eta_destino = Math.round(deriveEtaPercent(st.status_eta_destino) * 10) / 10;
-    const cpt = Math.round(deriveCptPercent(st.status_cpt) * 10) / 10;
+  // Filter out cancelled trips (driver_id === "0")
+  const validTrips = sheetTrips.filter(st => st.driver_id && st.driver_id !== '0');
+
+  console.log(`[DataAdapter] ${sheetTrips.length} total rows, ${validTrips.length} valid (filtered ${sheetTrips.length - validTrips.length} cancelled with driver_id=0)`);
+
+  return validTrips.map((st, idx) => {
+    const eta_origem = calcEtaPercent(st.eta_scheduled_origin_edited, st.eta_realizado, st.status_eta);
+    const eta_destino = calcEtaPercent(st.eta_destination_edited, st.eta_destino_realizado, st.status_eta_destino);
+    const cpt = calcCptPercent(st.cpt_scheduled_origin_edited, st.cpt_realizado, st.status_cpt);
     const uso_app = Math.round((85 + Math.random() * 15) * 10) / 10;
     const checklist = st.checkin_origin_operator !== '' && st.checkin_origin_operator !== '-';
     const ocorrencia = hasOccurrence(st.ocorrencia_eta) || hasOccurrence(st.ocorrencia_cpt) || hasOccurrence(st.ocorrencia_eta_destino);
@@ -49,7 +88,7 @@ export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
 
     return {
       id: st.trip_number || `t${idx + 1}`,
-      driver_id: st.driver_id || `d${idx}`,
+      driver_id: st.driver_id,
       driverName: st.driver_name && st.driver_name !== '-' ? st.driver_name : st.used_agency_name || 'Não atribuído',
       data: st.sta_origin_date || '',
       eta_origem,
