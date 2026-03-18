@@ -7,6 +7,7 @@ import { TripList } from '@/components/TripList';
 import { BlocksList } from '@/components/BlocksList';
 import { QualityChart } from '@/components/QualityChart';
 import { EvaluationForm } from '@/components/EvaluationForm';
+import { OccurrenceFilter } from '@/components/OccurrenceFilter';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
