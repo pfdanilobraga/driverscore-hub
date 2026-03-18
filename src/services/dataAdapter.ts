@@ -17,18 +17,36 @@ function normalizeOcorrencia(value: string): number {
   return (!value || value.trim() === '' || value.trim() === '-') ? 0 : 1;
 }
 
-function calculateTripScore(trip: SheetTrip): number {
+function isOcorrenciaValida(value: string, ignoredList: string[]): number {
+  if (!value || value.trim() === '' || value.trim() === '-') return 0;
+  if (ignoredList.includes(value.trim())) return 0;
+  return 1;
+}
+
+export function calculateTripScore(trip: SheetTrip | { status_eta: string; status_cpt: string; status_eta_destino: string; ocorrencia_eta: string; ocorrencia_cpt: string; ocorrencia_eta_destino: string }, ignoredOccurrences: string[] = []): number {
   const eta = normalizeStatus(trip.status_eta);
   const cpt = normalizeStatus(trip.status_cpt);
   const dest = normalizeStatus(trip.status_eta_destino);
 
   const ocorr =
-    normalizeOcorrencia(trip.ocorrencia_eta) +
-    normalizeOcorrencia(trip.ocorrencia_cpt) +
-    normalizeOcorrencia(trip.ocorrencia_eta_destino);
+    isOcorrenciaValida(trip.ocorrencia_eta, ignoredOccurrences) +
+    isOcorrenciaValida(trip.ocorrencia_cpt, ignoredOccurrences) +
+    isOcorrenciaValida(trip.ocorrencia_eta_destino, ignoredOccurrences);
 
   const score = (eta * 30) + (cpt * 30) + (dest * 40) - (ocorr * 10);
   return Math.max(0, score);
+}
+
+/** Extract unique occurrence texts from trips */
+export function extractUniqueOccurrences(sheetTrips: SheetTrip[]): string[] {
+  const set = new Set<string>();
+  for (const t of sheetTrips) {
+    for (const field of [t.ocorrencia_eta, t.ocorrencia_cpt, t.ocorrencia_eta_destino]) {
+      const v = (field || '').trim();
+      if (v && v !== '-') set.add(v);
+    }
+  }
+  return Array.from(set).sort();
 }
 
 export function transformTrips(sheetTrips: SheetTrip[]): Trip[] {
