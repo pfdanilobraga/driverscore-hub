@@ -1,17 +1,7 @@
 import { SheetTrip } from '@/services/sheetsService';
 import type { Driver, DriverStatus, Trip, Block } from '@/data/mockData';
 
-/**
- * Parse a datetime string like "22/3/2026 15:31:00" into a Date object.
- */
-function parseDateTime(value: string): Date | null {
-  if (!value || value === '-' || value === '') return null;
-  // Format: DD/MM/YYYY HH:MM:SS
-  const match = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
-  if (!match) return null;
-  const [, day, month, year, hour, min, sec] = match;
-  return new Date(+year, +month - 1, +day, +hour, +min, +sec);
-}
+/** Score calculation based on PRD formula */
 
 /**
  * Calculate ETA compliance % based on scheduled vs realized time.
