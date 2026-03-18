@@ -113,7 +113,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <DataContext.Provider value={{ trips, drivers, blocks, isLoading, isError, uniqueOccurrences, ignoredOccurrences, setIgnoredOccurrences, evaluateTrip }}>
+    <DataContext.Provider value={{ trips, drivers, blocks, isLoading, isError, uniqueOccurrences, ignoredOccurrences, setIgnoredOccurrences, evaluateTrip, dateRange, setDateRange }}>
       {children}
     </DataContext.Provider>
   );
