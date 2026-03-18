@@ -41,7 +41,8 @@ export function TripList({ onEvaluate }: TripListProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">ID</th>
+                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">ID Viagem</th>
+                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Driver ID</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Motorista</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Data</th>
                 <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">ETA Orig.</th>
@@ -55,9 +56,10 @@ export function TripList({ onEvaluate }: TripListProps) {
               </tr>
             </thead>
             <tbody>
-              {trips.slice(0, 30).map((trip) => (
+              {trips.map((trip) => (
                 <tr key={trip.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground max-w-[120px] truncate">{trip.id}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{trip.driver_id}</td>
                   <td className="px-4 py-3 font-medium">{trip.driverName}</td>
                   <td className="px-4 py-3 text-muted-foreground">{trip.data}</td>
                   <td className={`px-4 py-3 text-right font-mono ${trip.eta_origem < 95 ? 'text-destructive' : ''}`}>
