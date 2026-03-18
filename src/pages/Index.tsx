@@ -37,6 +37,10 @@ const Index = () => {
       <main className="container px-4 py-6 space-y-6">
         <StatsCards />
 
+        <div className="flex items-center justify-between">
+          <OccurrenceFilter />
+        </div>
+
         <Tabs defaultValue="ranking" className="space-y-4">
           <TabsList className="bg-card border">
             <TabsTrigger value="ranking" className="gap-1.5 text-xs">
