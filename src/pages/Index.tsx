@@ -39,9 +39,14 @@ const Index = () => {
       <main className="container px-4 py-6 space-y-6">
         <StatsCards />
 
+        <DriverUpload />
+
         <div className="flex items-center justify-between flex-wrap gap-3">
           <DateRangeFilter />
-          <OccurrenceFilter />
+          <div className="flex items-center gap-2 flex-wrap">
+            <OccurrenceFilter />
+            <ExportButton />
+          </div>
         </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">
