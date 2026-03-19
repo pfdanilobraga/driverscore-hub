@@ -10,6 +10,8 @@ import { EvaluationForm } from '@/components/EvaluationForm';
 import { EvaluationLogList } from '@/components/EvaluationLogList';
 import { OccurrenceFilter } from '@/components/OccurrenceFilter';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
+import { DriverUpload } from '@/components/DriverUpload';
+import { ExportButton } from '@/components/ExportButton';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
