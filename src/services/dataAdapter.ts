@@ -139,7 +139,8 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
   for (const [driverId, driverTrips] of driverMap) {
     const nome = driverTrips[0].driverName;
     const scores = driverTrips.map(t => t.score_final);
-    const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    // RF03 — Only compute average from 5+ trips, otherwise 0
+    const avg = scores.length >= 5 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const ocorrencias = driverTrips.filter(t => t.ocorrencia).length;
 
     let status: DriverStatus = 'ATIVO';
