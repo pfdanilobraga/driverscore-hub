@@ -89,6 +89,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [evaluations, setEvaluations] = useState<EvaluationRecord[]>([]);
   const [manualBlocks, setManualBlocks] = useState<DriverBlockRecord[]>([]);
+  const [driverMap, setDriverMap] = useState<DriverMap>({});
   const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
 
@@ -96,6 +97,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchEvaluations().then(setEvaluations).catch(console.error);
     fetchDriverBlocks().then(setManualBlocks).catch(console.error);
+    fetchDrivers().then(records => setDriverMap(buildDriverMap(records))).catch(console.error);
   }, [refreshKey]);
 
   const refreshData = useCallback(() => setRefreshKey(k => k + 1), []);
