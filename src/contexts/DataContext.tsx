@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useMemo, useCallback, useEffect, R
 import { useTrips } from '@/hooks/useTrips';
 import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, parseDateBR } from '@/services/dataAdapter';
 import { fetchEvaluations, upsertEvaluation, fetchDriverBlocks, unblockDriver as unblockDriverApi, createEvaluationLog, EvaluationRecord, DriverBlockRecord } from '@/services/supabaseService';
-import { fetchDrivers, buildDriverMap, resolveDriverName, DriverMap } from '@/services/driverService';
 import type { Trip, Driver, Block } from '@/data/mockData';
 import { mockTrips, mockDrivers, mockBlocks } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
@@ -89,7 +88,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [evaluations, setEvaluations] = useState<EvaluationRecord[]>([]);
   const [manualBlocks, setManualBlocks] = useState<DriverBlockRecord[]>([]);
-  const [driverMap, setDriverMap] = useState<DriverMap>({});
   const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
 
@@ -97,7 +95,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchEvaluations().then(setEvaluations).catch(console.error);
     fetchDriverBlocks().then(setManualBlocks).catch(console.error);
-    fetchDrivers().then(records => setDriverMap(buildDriverMap(records))).catch(console.error);
   }, [refreshKey]);
 
   const refreshData = useCallback(() => setRefreshKey(k => k + 1), []);
@@ -112,15 +109,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { trips, drivers, blocks, activeDrivers } = useMemo(() => {
     if (sheetTrips && sheetTrips.length > 0) {
       let t = transformTrips(sheetTrips, ignoredOccurrences);
-
-      // Apply driver name resolution from uploaded driver base
-      const hasDriverMap = Object.keys(driverMap).length > 0;
-      if (hasDriverMap) {
-        t = t.map(trip => ({
-          ...trip,
-          driverName: resolveDriverName(trip.driver_id, trip.driverName, driverMap),
-        }));
-      }
 
       // Apply date range filter
       if (dateRange.from || dateRange.to) {
@@ -176,7 +164,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return { trips: mockTrips, drivers: mockDrivers, blocks: mockBlocks, activeDrivers: active };
     }
     return { trips: [] as Trip[], drivers: [] as Driver[], blocks: [] as Block[], activeDrivers: [] as Driver[] };
-  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations, dateRange, manualBlocks, driverMap]);
+  }, [sheetTrips, ignoredOccurrences, isLoading, evaluations, dateRange, manualBlocks]);
 
   const evaluateTrip = useCallback(async (tripId: string, driverId: string, driverName: string, evaluation: EvaluationData) => {
     const operador = evaluation.operador || 'Ana Costa';

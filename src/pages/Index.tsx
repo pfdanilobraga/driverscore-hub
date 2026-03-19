@@ -10,8 +10,6 @@ import { EvaluationForm } from '@/components/EvaluationForm';
 import { EvaluationLogList } from '@/components/EvaluationLogList';
 import { OccurrenceFilter } from '@/components/OccurrenceFilter';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
-import { DriverUpload } from '@/components/DriverUpload';
-import { ExportButton } from '@/components/ExportButton';
 
 const Index = () => {
   const [evaluatingTrip, setEvaluatingTrip] = useState<string | null>(null);
@@ -39,14 +37,9 @@ const Index = () => {
       <main className="container px-4 py-6 space-y-6">
         <StatsCards />
 
-        <DriverUpload />
-
         <div className="flex items-center justify-between flex-wrap gap-3">
           <DateRangeFilter />
-          <div className="flex items-center gap-2 flex-wrap">
-            <OccurrenceFilter />
-            <ExportButton />
-          </div>
+          <OccurrenceFilter />
         </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">

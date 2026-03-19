@@ -53,30 +53,6 @@ export type Database = {
         }
         Relationships: []
       }
-      drivers: {
-        Row: {
-          created_at: string
-          driver_id: string
-          driver_name: string
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          driver_id: string
-          driver_name: string
-          id?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          driver_id?: string
-          driver_name?: string
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       evaluation_logs: {
         Row: {
           acao: string
