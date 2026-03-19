@@ -6,6 +6,24 @@ import type { Trip, Driver, Block } from '@/data/mockData';
 import { mockTrips, mockDrivers, mockBlocks } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 
+export const DEFAULT_IGNORED_OCCURRENCES = [
+  "Atraso na portaria Shopee",
+  "Morosidade no carregamento",
+  "Problema sistêmico Shopee (CTE/API)",
+  "Saída antecipada do CPT - Early",
+  "Solicitação Shopee para antecipação de chegada - Early",
+];
+
+const STORAGE_KEY = 'ignoredOccurrences';
+
+function loadIgnored(): string[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return DEFAULT_IGNORED_OCCURRENCES;
+}
+
 interface EvaluationData {
   comunicacao: string;
   atendeu: boolean;
