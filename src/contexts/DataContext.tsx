@@ -113,6 +113,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (sheetTrips && sheetTrips.length > 0) {
       let t = transformTrips(sheetTrips, ignoredOccurrences);
 
+      // Apply driver name resolution from uploaded driver base
+      const hasDriverMap = Object.keys(driverMap).length > 0;
+      if (hasDriverMap) {
+        t = t.map(trip => ({
+          ...trip,
+          driverName: resolveDriverName(trip.driver_id, trip.driverName, driverMap),
+        }));
+      }
+
       // Apply date range filter
       if (dateRange.from || dateRange.to) {
         t = t.filter(trip => {
