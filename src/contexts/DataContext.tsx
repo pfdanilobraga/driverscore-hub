@@ -79,7 +79,12 @@ const DataContext = createContext<DataContextType>({
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const { data: sheetTrips, isLoading, isError } = useTrips();
-  const [ignoredOccurrences, setIgnoredOccurrences] = useState<string[]>([]);
+  const [ignoredOccurrences, setIgnoredOccurrencesRaw] = useState<string[]>(loadIgnored);
+
+  const setIgnoredOccurrences = useCallback((v: string[]) => {
+    setIgnoredOccurrencesRaw(v);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch {}
+  }, []);
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [evaluations, setEvaluations] = useState<EvaluationRecord[]>([]);
   const [manualBlocks, setManualBlocks] = useState<DriverBlockRecord[]>([]);
