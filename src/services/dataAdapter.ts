@@ -124,7 +124,7 @@ function calcStatusMetrics(trips: Trip[], field: 'status_eta' | 'status_eta_dest
   };
 }
 
-// RF03 — Driver score = average of ALL trip scores (no skipping)
+// RF03 — Driver score = average of trip scores, starting from 5th trip
 export function deriveDrivers(trips: Trip[]): Driver[] {
   const driverMap = new Map<string, Trip[]>();
 
@@ -138,7 +138,9 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
 
   for (const [driverId, driverTrips] of driverMap) {
     const nome = driverTrips[0].driverName;
-    const scores = driverTrips.map(t => t.score_final);
+    // Only compute score from 5th trip onwards (skip first 4)
+    const eligibleTrips = driverTrips.slice(4);
+    const scores = eligibleTrips.map(t => t.score_final);
     const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const ocorrencias = driverTrips.filter(t => t.ocorrencia).length;
 
