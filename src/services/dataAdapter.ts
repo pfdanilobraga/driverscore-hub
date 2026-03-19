@@ -90,8 +90,9 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
     const resolvedStatusDest = resolveStatus(st.status_eta_destino, st.eta_destination_edited, st.eta_destino_realizado);
     const resolvedStatusCpt = (st.status_cpt || '').trim();
 
-    // RF01/RF02 — New score formula (no CPT, no occurrence penalties in base score)
-    const score_final = calculateTripScore({ status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest });
+    // RF01/RF02 — Score formula with occurrence penalty (-10 per occurrence)
+    const baseScore = calculateTripScore({ status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest });
+    const score_final = Math.max(0, baseScore - (ocorrencia_count * 10));
 
     return {
       id: st.trip_number || `t${idx + 1}`,
@@ -138,7 +139,8 @@ export function deriveDrivers(trips: Trip[]): Driver[] {
   for (const [driverId, driverTrips] of driverMap) {
     const nome = driverTrips[0].driverName;
     const scores = driverTrips.map(t => t.score_final);
-    const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    // RF03 — Only compute average from 5+ trips, otherwise 0
+    const avg = scores.length >= 5 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const ocorrencias = driverTrips.filter(t => t.ocorrencia).length;
 
     let status: DriverStatus = 'ATIVO';
