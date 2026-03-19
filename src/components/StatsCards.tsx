@@ -25,7 +25,7 @@ export function StatsCards() {
   // RF05 — Score médio uses only active (non-blocked) drivers
   const stats = [
   {
-    label: 'Motoristas Ativos',
+    label: 'Motoristas Ranqueados',
     value: activeDrivers.length,
     total: drivers.length,
     icon: Users,
