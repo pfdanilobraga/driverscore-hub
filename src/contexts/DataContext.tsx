@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useMemo, useCallback, useEffect, R
 import { useTrips } from '@/hooks/useTrips';
 import { transformTrips, deriveDrivers, deriveBlocks, extractUniqueOccurrences, parseDateBR } from '@/services/dataAdapter';
 import { fetchEvaluations, upsertEvaluation, fetchDriverBlocks, unblockDriver as unblockDriverApi, createEvaluationLog, EvaluationRecord, DriverBlockRecord } from '@/services/supabaseService';
+import { fetchDrivers, buildDriverMap, resolveDriverName, DriverMap } from '@/services/driverService';
 import type { Trip, Driver, Block } from '@/data/mockData';
 import { mockTrips, mockDrivers, mockBlocks } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
