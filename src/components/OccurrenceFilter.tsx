@@ -1,10 +1,9 @@
-import { Filter, X } from 'lucide-react';
+import { Filter, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useData } from '@/contexts/DataContext';
+import { useData, DEFAULT_IGNORED_OCCURRENCES } from '@/contexts/DataContext';
 
 export function OccurrenceFilter() {
   const { uniqueOccurrences, ignoredOccurrences, setIgnoredOccurrences } = useData();
@@ -19,6 +18,7 @@ export function OccurrenceFilter() {
     );
   };
 
+  const reset = () => setIgnoredOccurrences([...DEFAULT_IGNORED_OCCURRENCES]);
   const clear = () => setIgnoredOccurrences([]);
   const count = ignoredOccurrences.length;
 
@@ -38,11 +38,16 @@ export function OccurrenceFilter() {
       <PopoverContent className="w-80 p-0" align="start">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="text-sm font-medium">Ignorar ocorrências</span>
-          {count > 0 && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clear}>
-              <X className="h-3 w-3" /> Limpar
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={reset}>
+              <RotateCcw className="h-3 w-3" /> Resetar
             </Button>
-          )}
+            {count > 0 && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clear}>
+                <X className="h-3 w-3" /> Limpar
+              </Button>
+            )}
+          </div>
         </div>
         <div className="max-h-64 overflow-y-auto">
           <div className="p-2 space-y-1">
