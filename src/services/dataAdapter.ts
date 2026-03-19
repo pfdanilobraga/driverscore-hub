@@ -90,8 +90,9 @@ export function transformTrips(sheetTrips: SheetTrip[], ignoredOccurrences: stri
     const resolvedStatusDest = resolveStatus(st.status_eta_destino, st.eta_destination_edited, st.eta_destino_realizado);
     const resolvedStatusCpt = (st.status_cpt || '').trim();
 
-    // RF01/RF02 — New score formula (no CPT, no occurrence penalties in base score)
-    const score_final = calculateTripScore({ status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest });
+    // RF01/RF02 — Score formula with occurrence penalty (-10 per occurrence)
+    const baseScore = calculateTripScore({ status_eta: resolvedStatusEta, status_eta_destino: resolvedStatusDest });
+    const score_final = Math.max(0, baseScore - (ocorrencia_count * 10));
 
     return {
       id: st.trip_number || `t${idx + 1}`,
